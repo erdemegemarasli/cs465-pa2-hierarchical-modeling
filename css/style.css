@@ -1,0 +1,20 @@
+canvas {
+    border-radius: 5px;
+}
+
+.game-container {
+    margin-top: 15px;
+    margin-left: 15px;
+}
+
+.row {
+    margin-bottom: 5px;
+}
+
+.ui-widget-header {
+    background: #5b9bd5;
+}
+
+.ui.button {
+    margin: 0 0 0 0;
+}
