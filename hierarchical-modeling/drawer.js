@@ -1,148 +1,150 @@
-/**
- * This file carries the all logic of the program.
- * It is the start activity of the program.
- */
+export function cuboid(e1, e2, e3) {
+    const cuboidObj = {};
+    cuboidObj.points = [];
+    cuboidObj.colors = [];
 
-import { hex2rgb, downloadObjectAsJson } from './toolkit.js';
-import { cuboid, ellipsoid, pyramid } from './drawer.js';
+    const quad = (a, b, c, d) => {
+        const vertices = [
+            vec4( -e1, -e2,  e3, 1.0 ),
+            vec4( -e1,  e2,  e3, 1.0 ),
+            vec4(  e1,  e2,  e3, 1.0 ),
+            vec4(  e1, -e2,  e3, 1.0 ),
+            vec4( -e1, -e2, -e3, 1.0 ),
+            vec4( -e1,  e2, -e3, 1.0 ),
+            vec4(  e1,  e2, -e3, 1.0 ),
+            vec4(  e1, -e2, -e3, 1.0 )      
+        ];
 
+        const vColors = [
+            [ 0.0, 0.0, 0.0, 1.0 ],  // black
+            [ 1.0, 0.0, 0.0, 1.0 ],  // red
+            [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
+            [ 0.0, 1.0, 0.0, 1.0 ],  // green
+            [ 0.0, 0.0, 1.0, 1.0 ],  // blue
+            [ 1.0, 0.0, 1.0, 1.0 ],  // magenta
+            [ 0.0, 1.0, 1.0, 1.0 ],  // cyan
+            [ 1.0, 1.0, 1.0, 1.0 ]   // white
+        ];
 
-// WebGL Properties
-let canvas = null;
-let gl = null;
-let program = null;
-let modelViewMatrixLoc = null;
+        const indices = [a, b, c, a, c, d];
 
-
-/**
- * This function binds the UI events to the DOM elements.
- * @param {*} gl WebGL instance.
- * @param {*} program Program instance.
- * @param {DOMElement} canvas The canvas object.
- */
-function bindEvents(gl, program, canvas) {
-    $('#jsonFile').bind('change', () => {
-        const file = jsonFile.files[0];
-        const fileType = /json.*/;
-
-        if (file.type.match(fileType)) {
-            const reader = new FileReader();
-            
-            reader.onload = () => {
-                const content = reader.result;
-                const data = JSON.parse(content);
-                
-
-            }
-            
-            reader.readAsText(file);	
-        } else {
-            alert ("File not supported!");
-        }           
-    });
-
-    $('#saveButton').click(() => {
-        downloadObjectAsJson({}, "data");
-    });
-
-    $('#loadButton').click(() => {
-        $('#jsonFile').click();
-    });
-
-    $('canvas').click(event => {
-        
-    });
-
-}
-
-const shapes = [];
-
-function render() {
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    for (let i = 0; i < shapes.length; i++) {
-        let modelViewMatrix = mult(translate(i * 0.3, 0.0, 0.0, 0), mat4());
-        modelViewMatrix = mult(rotate(45, 1, 0, 0), modelViewMatrix);
-        modelViewMatrix = mult(rotate(45, 0, 1, 0), modelViewMatrix);
-        gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
-        gl.drawArrays(gl.TRIANGLES, shapes[i][0], shapes[i][1]);
+        for (let i = 0; i < indices.length; i++) {
+            cuboidObj.points.push(vertices[indices[i]]);
+            cuboidObj.colors.push(vColors[a]);
+        }
     }
 
-    requestAnimFrame( render );
+    quad( 1, 0, 3, 2 );
+    quad( 2, 3, 7, 6 );
+    quad( 3, 0, 4, 7 );
+    quad( 6, 5, 1, 2 );
+    quad( 4, 5, 6, 7 );
+    quad( 5, 4, 0, 1 );
+
+    return cuboidObj;
 }
 
+export function ellipsoid(a, b, c) {
+    const ellipsoidObj = {};
+    ellipsoidObj.points = [];
+    ellipsoidObj.colors = [];
 
-window.onload = () => {
-    canvas = document.querySelector( 'canvas' );
-    gl = WebGLUtils.setupWebGL( canvas );
+    const edges  = 100;
+    const angle = 360 / edges;
 
-    if (!gl) return alert( "WebGL isn't available" );
-    
-    gl.viewport( 0, 0, canvas.width, canvas.height );
+    const x = (theta, phi) => {
+        return a * Math.sin(theta) * Math.cos(phi);
+    };
 
-    const terrainColor = hex2rgb('#70ad47');
-    gl.clearColor( terrainColor.r, terrainColor.g, terrainColor.b, 1.0 );   
+    const y = (theta, phi) => {
+        return b * Math.sin(theta) * Math.sin(phi);
+    };
 
-    gl.enable(gl.DEPTH_TEST);
-     
-    program = initShaders( gl, 'vertex-shader', 'fragment-shader' );
-    gl.useProgram( program );
+    const z = (theta) => {
+        return c * Math.cos(theta);
+    };
 
-    bindEvents(gl, program, canvas);
+    for (let theta = 0; theta < 180; theta += angle) {
+        for (let phi = 0; phi < 360; phi += angle) {
+            ellipsoidObj.points.push(vec4( x(theta, phi), y(theta, phi),  z(theta), 1.0 ));
+        }
+    }
 
-    let idx = 0;
+    const numOfPoints = ellipsoidObj.points.length;
 
-    const myCube = cuboid(0.2, 0.1, 0.3);
-    shapes.push([idx, myCube.points.length]);
-    idx += myCube.points.length;
+    const vColors = [
+        [ 0.0, 0.0, 0.0, 1.0 ],  // black
+        [ 1.0, 0.0, 0.0, 1.0 ],  // red
+        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
+        [ 0.0, 1.0, 0.0, 1.0 ],  // green
+        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
+        [ 1.0, 0.0, 1.0, 1.0 ],  // magenta
+        [ 0.0, 1.0, 1.0, 1.0 ],  // cyan
+        [ 1.0, 1.0, 1.0, 1.0 ]   // white
+    ];
 
-    const myCube2 = cuboid(0.1, 0.2, 0.1);
-    shapes.push([idx, myCube2.points.length]);
-    idx += myCube2.points.length;
+    for (let i = 0; i < numOfPoints; i++) {
+        ellipsoidObj.colors.push(vColors[i % vColors.length]);
+    }
 
-    const myEllipsoid = ellipsoid(0.2, 0.1, 0.3);
-    shapes.push([idx, myEllipsoid.points.length]);
-    idx += myEllipsoid.points.length;
+    return ellipsoidObj;
+}
 
-    const myPyramid = pyramid(0.1, 0.1, 0.1);
-    shapes.push([idx, myPyramid.points.length]);
-    idx += myPyramid.points.length;
+export function pyramid(e1, e2, h) {
+    const pyramidObj = {};
+    pyramidObj.colors = [];
 
-    let points = [];
-    points = points.concat(myCube.points);
-    points = points.concat(myCube2.points);
-    points = points.concat(myEllipsoid.points);
-    points = points.concat(myPyramid.points);
+    pyramidObj.points = [
+        // Front face
+        vec4(0.0,  h,  0.0, 1.0),
+        vec4(-e1, -h,  e2, 1.0),
+        vec4(e1, -h,  e2, 1.0),
+        // Right face
+        vec4(0.0,  h,  0.0, 1.0),
+        vec4(e1, -h,  e2, 1.0),
+        vec4(e1, -h, -e2, 1.0),
+        // Back face
+        vec4(0.0,  h,  0.0, 1.0),
+        vec4(e1, -h, -e2, 1.0),
+        vec4(-e1, -h, -e2, 1.0),
+        // Left face
+        vec4(0.0,  h,  0.0, 1.0),
+        vec4(-e1, -h, -e2, 1.0),
+        vec4(-e1, -h,  e2, 1.0),
+        // Bottom
+        vec4(  e1, -h,  e2, 1.0 ),
+        vec4( -e1, -h,  e2, 1.0 ),
+        vec4( -e1, -h, -e2, 1.0 ),
+        vec4(  e1, -h,  e2, 1.0 ),
+        vec4( -e1, -h, -e2, 1.0 ),
+        vec4(  e1, -h, -e2, 1.0 )
+    ];
 
-    let colors = [];
-    colors = colors.concat(myCube.colors);
-    colors = colors.concat(myCube2.colors);
-    colors = colors.concat(myEllipsoid.colors);
-    colors = colors.concat(myPyramid.colors);
+    pyramidObj.colors = [
+        // Front face
+        [ 1.0, 0.0, 0.0, 1.0 ],
+        [ 1.0, 0.0, 0.0, 1.0 ],
+        [ 1.0, 0.0, 0.0, 1.0 ],
+        // Right face
+        [ 1.0, 1.0, 0.0, 1.0 ],
+        [ 1.0, 1.0, 0.0, 1.0 ],
+        [ 1.0, 1.0, 0.0, 1.0 ],
+        // Back face
+        [ 0.0, 0.0, 1.0, 1.0 ],
+        [ 0.0, 0.0, 1.0, 1.0 ],
+        [ 0.0, 0.0, 1.0, 1.0 ],
+        // Left face
+        [ 1.0, 0.0, 1.0, 1.0 ],
+        [ 1.0, 0.0, 1.0, 1.0 ],
+        [ 1.0, 0.0, 1.0, 1.0 ],
+        // Bottom
+        [ 0.0, 0.0, 0.0, 1.0 ],
+        [ 0.0, 0.0, 0.0, 1.0 ],
+        [ 0.0, 0.0, 0.0, 1.0 ],
+        [ 0.0, 0.0, 0.0, 1.0 ],
+        [ 0.0, 0.0, 0.0, 1.0 ],
+        [ 0.0, 0.0, 0.0, 1.0 ]
+    ];
 
-    modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
-
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(mat4()));
-
-    // let modelViewMatrix = mult(rotate(0, 0, 1, 0), mat4());
-    // modelViewMatrix = mult(rotate(0, 1, 0, 0), modelViewMatrix);
-    // gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
-
-    const cBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW );
-
-    const vColor = gl.getAttribLocation( program, "vColor" );
-    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vColor );
-
-    const vBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
-    
-    const vPosition = gl.getAttribLocation( program, "vPosition" );
-    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vPosition );
-
-    render();
-};
+    return pyramidObj;
+}
