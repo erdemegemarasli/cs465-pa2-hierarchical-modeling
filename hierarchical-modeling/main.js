@@ -12,7 +12,63 @@ let canvas = null;
 let gl = null;
 let program = null;
 let modelViewMatrixLoc = null;
+let modelViewMatrix = null;
 
+let limbs = [];
+//let rootLimb = null;
+
+// Returns he index of the given limb
+function getLimbPosition(limbType, limbNumber){
+    for (let i = 0; i < limbs.length; i++){
+        if (limbs[i][limbType] == limbType && limbs[i][limbNumber] == limbNumber){
+            return i;
+        }
+    }
+    return -1;
+}
+/**
+ * transform = transform matrix
+ * render = render function
+ * sibling = sibling index
+ * child = child index
+ * shape = gerek yok galiba
+ * limbType = Type of the limb
+ * limbNumber = Number of the limb
+ */
+function createLimb(transform, render, sibling, child, width, height, depth, center, shape, limbType, limbNumber) {
+    return {
+        transform: transform,
+        render: render,
+        sibling: sibling,
+        child: child,
+        width: width,
+        height: height,
+        depth: depth,
+        center: center,
+        shape: shape,
+        limbType: limbType,
+        limbNumber: limbNumber
+    };
+}
+
+function processLimbs(limbType, limbNumber, transformation) {
+
+    limbIndex = getLimbPosition(limbType, limbNumber);
+    limbs[limbIndex][transform] = mult(transformation, limbs[limbIndex].transform);
+}
+
+function traverse(limbType, limbNumber) {
+
+    limbIndex = getLimbPosition(limbType, limbNumber);
+
+    if (limbIndex < 0 ) return;
+    stack.push(modelViewMatrix);
+    modelViewMatrix = mult(modelViewMatrix, figure[limbIndex].transform);
+    figure[limbIndex].render();
+    if (figure[Id].child != null) traverse(figure[limbIndex].child);
+    modelViewMatrix = stack.pop();
+    if (figure[Id].sibling != null) traverse(figure[limbIndex].sibling);
+}
 
 /**
  * This function binds the UI events to the DOM elements.
@@ -54,7 +110,6 @@ function bindEvents(gl, program, canvas) {
     });
 
 }
-
 let myCube = null;
 let myCube2 = null;
 
@@ -63,14 +118,14 @@ function render() {
 
     gl.drawArrays(gl.TRIANGLES, 0, 36);
 
-    let modelViewMatrix = mult(rotate(45, 0, 1, 0), mat4());
-    modelViewMatrix = mult(rotate(135, 1, 0, 0), modelViewMatrix);
-    modelViewMatrix = mult(translate(0.5, 0.5, 0.5), modelViewMatrix);
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+    let instanceMatrix = mult(rotate(45, 0, 1, 0), modelViewMatrix);
+    instanceMatrix = mult(rotate(135, 1, 0, 0), instanceMatrix);
+    instanceMatrix = mult(translate(0.5, 0.5, 0.5), instanceMatrix);
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
 
-    // gl.drawArrays(gl.TRIANGLES, 36, 36);
+    gl.drawArrays(gl.TRIANGLES, 36, 36);
    
-    requestAnimFrame( render );
+    //requestAnimFrame( render );
 }
 
 
@@ -109,8 +164,8 @@ window.onload = () => {
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
-    let modelViewMatrix = mult(rotate(45, 0, 1, 0), mat4());
-    modelViewMatrix = mult(rotate(135, 1, 0, 0), modelViewMatrix);
+    modelViewMatrix = mat4();
+    //modelViewMatrix = mult(rotate(135, 1, 0, 0), modelViewMatrix);
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
     const cBuffer = gl.createBuffer();
