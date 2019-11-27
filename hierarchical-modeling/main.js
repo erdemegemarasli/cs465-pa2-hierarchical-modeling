@@ -18,9 +18,9 @@ let limbs = [];
 //let rootLimb = null;
 
 // Returns he index of the given limb
-function getLimbPosition(limbType, limbNumber){
+function getLimbPosition(limbName, limbNumber){
     for (let i = 0; i < limbs.length; i++){
-        if (limbs[i][limbType] == limbType && limbs[i][limbNumber] == limbNumber){
+        if (limbs[i][limbName] == limbName && limbs[i][limbNumber] == limbNumber){
             return i;
         }
     }
@@ -32,10 +32,10 @@ function getLimbPosition(limbType, limbNumber){
  * sibling = sibling index
  * child = child index
  * shape = gerek yok galiba
- * limbType = Type of the limb
+ * limbName = Name of the limb
  * limbNumber = Number of the limb
  */
-function createLimb(transform, render, sibling, child, width, height, depth, center, shape, limbType, limbNumber) {
+function createLimb(transform, render, sibling, child, width, height, depth, center, shape, limbName, limbNumber) {
     return {
         transform: transform,
         render: render,
@@ -46,20 +46,20 @@ function createLimb(transform, render, sibling, child, width, height, depth, cen
         depth: depth,
         center: center,
         shape: shape,
-        limbType: limbType,
+        limbName: limbName,
         limbNumber: limbNumber
     };
 }
 
-function processLimbs(limbType, limbNumber, transformation) {
+function processLimbs(limbName, limbNumber, transformation) {
 
-    limbIndex = getLimbPosition(limbType, limbNumber);
+    limbIndex = getLimbPosition(limbName, limbNumber);
     limbs[limbIndex][transform] = mult(transformation, limbs[limbIndex].transform);
 }
 
-function traverse(limbType, limbNumber) {
+function traverse(limbName, limbNumber) {
 
-    limbIndex = getLimbPosition(limbType, limbNumber);
+    limbIndex = getLimbPosition(limbName, limbNumber);
 
     if (limbIndex < 0 ) return;
     stack.push(modelViewMatrix);
