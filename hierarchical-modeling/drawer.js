@@ -2,6 +2,9 @@ export function cuboid(e1, e2, e3) {
     const cuboidObj = {};
     cuboidObj.points = [];
     cuboidObj.colors = [];
+    e1 = e1 / 2;
+    e2 = e2 / 2;
+    e3 = e3 / 2;
 
     const quad = (a, b, c, d) => {
         const vertices = [
@@ -49,6 +52,10 @@ export function ellipsoid(a, b, c) {
     ellipsoidObj.points = [];
     ellipsoidObj.colors = [];
 
+    a = a / 2;
+    b = b / 2;
+    c = c / 2;
+
     const edges  = 100;
     const angle = 360 / edges;
 
@@ -93,6 +100,10 @@ export function ellipsoid(a, b, c) {
 export function pyramid(e1, e2, h) {
     const pyramidObj = {};
     pyramidObj.colors = [];
+
+    e1 = e1 / 2;
+    e2 = e2 / 2;
+    h = h / 2;
 
     pyramidObj.points = [
         // Front face

@@ -4,7 +4,7 @@
  */
 
 import { hex2rgb, downloadObjectAsJson } from './toolkit.js';
-import { cube } from './drawer.js';
+import { ellipsoid, cuboid, pyramid } from './drawer.js';
 
 
 // WebGL Properties
@@ -13,61 +13,109 @@ let gl = null;
 let program = null;
 let modelViewMatrixLoc = null;
 let modelViewMatrix = null;
+let ellipsoidIndex = 0;
+let ellipsoidLength = 0;
+let cuboidIndex = 0;
+let cuboidLength = 0;
+let pyramidIndex = 0;
+let pyramidLength = 0;
+let stack = [];
+
 
 let limbs = [];
 //let rootLimb = null;
 
+function scale4(a, b, c) {
+    var result = mat4();
+    result[0][0] = a;
+    result[1][1] = b;
+    result[2][2] = c;
+    return result;
+}
+
 // Returns he index of the given limb
 function getLimbPosition(limbName, limbNumber){
     for (let i = 0; i < limbs.length; i++){
-        if (limbs[i][limbName] == limbName && limbs[i][limbNumber] == limbNumber){
+        if (limbs[i].limbName === limbName && limbs[i].limbNumber === limbNumber){
             return i;
         }
     }
     return -1;
 }
+function initLimbs(){
+    
+    let m = mat4();
+    m = mult(scale4(0.6, 0.24, 0.24), m);
+
+    m = mult(rotate(0.0, 1, 0, 0), m);
+    m = mult(rotate(0.0, 0, 1, 0), m);
+    m = mult(rotate(0, 0, 0, 1), m);
+
+    m = mult(translate(0.0, 0.0, 0.0), m);
+
+    let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1);
+    limbs.push(torso);
+
+    m = mat4();
+    m = mult(scale4(0.3, 0.15, 0.15), m);
+
+    m = mult(rotate(0.0, 1, 0, 0), m);
+    m = mult(rotate(0.0, 0, 1, 0), m);
+    m = mult(rotate(0, 0, 0, 1), m);
+
+    m = mult(translate(0.5, 0.0, 0.0), m);
+
+    let neck = createLimb(m, "cuboid", -1, -1, "neck", 1);
+    limbs.push(neck);
+}
+
+function drawLimb(limbIndex){
+
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+    if (limbs[limbIndex].shape === "ellipsoid"){
+        gl.drawArrays(gl.TRIANGLES, ellipsoidIndex, ellipsoidLength);
+    }
+    else if(limbs[limbIndex].shape === "cuboid"){
+        gl.drawArrays(gl.TRIANGLES, cuboidIndex, cuboidLength);
+    }
+    else if(limbs[limbIndex].shape === "pyramid"){
+        gl.drawArrays(gl.TRIANGLES, pyramidIndex, pyramidLength);
+    }
+}
 /**
  * transform = transform matrix
- * render = render function
+ * shape = shape function
  * sibling = sibling index
  * child = child index
- * shape = gerek yok galiba
  * limbName = Name of the limb
  * limbNumber = Number of the limb
  */
-function createLimb(transform, render, sibling, child, width, height, depth, center, shape, limbName, limbNumber) {
+function createLimb(transform, shape, sibling, child, limbName, limbNumber) {
     return {
         transform: transform,
-        render: render,
+        shape: shape,
         sibling: sibling,
         child: child,
-        width: width,
-        height: height,
-        depth: depth,
-        center: center,
-        shape: shape,
         limbName: limbName,
-        limbNumber: limbNumber
+        limbNumber: limbNumber,
     };
 }
 
 function processLimbs(limbName, limbNumber, transformation) {
 
-    limbIndex = getLimbPosition(limbName, limbNumber);
-    limbs[limbIndex][transform] = mult(transformation, limbs[limbIndex].transform);
+    let limbIndex = getLimbPosition(limbName, limbNumber);
+    limbs[limbIndex].transform = mult(transformation, limbs[limbIndex].transform);
 }
 
-function traverse(limbName, limbNumber) {
-
-    limbIndex = getLimbPosition(limbName, limbNumber);
-
+function traverse(limbIndex) {
+    console.log(limbIndex);
     if (limbIndex < 0 ) return;
     stack.push(modelViewMatrix);
-    modelViewMatrix = mult(modelViewMatrix, figure[limbIndex].transform);
-    figure[limbIndex].render();
-    if (figure[Id].child != null) traverse(figure[limbIndex].child);
+    modelViewMatrix = mult(modelViewMatrix, limbs[limbIndex].transform);
+    drawLimb(limbIndex);
+    if (limbs[limbIndex].child != null) traverse(limbs[limbIndex].child);
     modelViewMatrix = stack.pop();
-    if (figure[Id].sibling != null) traverse(figure[limbIndex].sibling);
+    if (limbs[limbIndex].sibling != null) traverse(limbs[limbIndex].sibling);
 }
 
 /**
@@ -115,17 +163,9 @@ let myCube2 = null;
 
 function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-    let instanceMatrix = mult(rotate(45, 0, 1, 0), modelViewMatrix);
-    instanceMatrix = mult(rotate(135, 1, 0, 0), instanceMatrix);
-    instanceMatrix = mult(translate(0.5, 0.5, 0.5), instanceMatrix);
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(instanceMatrix));
-
-    gl.drawArrays(gl.TRIANGLES, 36, 36);
-   
-    //requestAnimFrame( render );
+    traverse(getLimbPosition("torso", 1));
+    requestAnimFrame(render);
+    //console.log("sadaa");
 }
 
 
@@ -147,26 +187,32 @@ window.onload = () => {
 
     bindEvents(gl, program, canvas);
 
-    myCube = cube(0.1);
-    myCube2 = cube(0.2);
-
-    let points = [];
-    points = points.concat(myCube.points);
-    points = points.concat(myCube2.points);
-
-    let colors = [];
-    colors = colors.concat(myCube.colors);
-    colors = colors.concat(myCube2.colors);
-
-    console.log(myCube.points);
-    console.log(myCube2.points);
-    console.log(points);
-
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
     modelViewMatrix = mat4();
-    //modelViewMatrix = mult(rotate(135, 1, 0, 0), modelViewMatrix);
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+
+    let theEllipsoid = ellipsoid(1,1,1);
+    let theCuboid = cuboid(1,1,1);
+    let thePyramid = pyramid(1,1,1);
+    let points = [];
+    let colors = [];
+
+    points = points.concat(theEllipsoid.points);
+    ellipsoidIndex = 0;
+    ellipsoidLength = theEllipsoid.points.length;
+
+    points = points.concat(theCuboid.points);
+    cuboidIndex = ellipsoidLength;
+    cuboidLength = theCuboid.points.length;
+
+    points = points.concat(thePyramid.points);
+    pyramidIndex = ellipsoidLength + cuboidLength;
+    pyramidLength = thePyramid.points.length;
+
+    colors = colors.concat(theEllipsoid.colors);
+    colors = colors.concat(theCuboid.colors);
+    colors = colors.concat(thePyramid.colors);
 
     const cBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
@@ -183,6 +229,12 @@ window.onload = () => {
     const vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
+    
+    let m = mat4();
+    m = mult(rotate(45, 0, 0, 1), m);
+    initLimbs();
+    processLimbs("neck", 1, m);
+    processLimbs("torso", 1, m);
 
     render();
 };
