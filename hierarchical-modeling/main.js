@@ -21,7 +21,6 @@ let pyramidIndex = 0;
 let pyramidLength = 0;
 let stack = [];
 
-
 let limbs = [];
 //let rootLimb = null;
 
@@ -35,14 +34,17 @@ function scale4(a, b, c) {
 
 function rotateAboutCorner(pos, size, angle) {
     let m = mat4();
-    
-    m = mult(translate(-pos.x, -pos.y, -pos.z), m);
-    m = mult(translate(size.h / 2, size.w / 2, size.d / 2), m);
+
+    console.log(pos);
+    console.log(size);
+    console.log(angle);
+
+
+    m = mult(translate(-pos.x + 0.5 * size.w, -pos.y + 0.5 * size.h, -pos.z + 0.5 * size.d), m);
     m = mult(rotate(angle.x, 1, 0, 0), m);
     m = mult(rotate(angle.y, 0, 1, 0), m);
-    m = mult(rotate(angle.z, 1, 0, 1), m);
-    m = mult(translate(-size.h / 2, -size.w / 2, -size.d / 2), m);
-    m = mult(translate(pos.x, pos.y, pos.z), m);
+    m = mult(rotate(angle.z, 0, 0, 1), m);
+    m = mult(translate(pos.x - 0.5 * size.w, pos.y - 0.5 * size.h, pos.z - 0.5 * size.d), m);
 
     return m;
 }
@@ -56,6 +58,7 @@ function getLimbPosition(limbName, limbNumber){
     }
     return -1;
 }
+
 function initLimbs(){
     
     let m = mat4();
@@ -63,11 +66,11 @@ function initLimbs(){
 
     m = mult(rotate(0.0, 1, 0, 0), m);
     m = mult(rotate(0.0, 0, 1, 0), m);
-    m = mult(rotate(0, 0, 0, 1), m);
+    m = mult(rotate(0.0, 0, 0, 1), m);
 
     m = mult(translate(0.0, 0.0, 0.0), m);
 
-    let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1);
+    let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1, {x: 0.0, y: 0.0, z: 0.0}, {w: 0.6, h: 0.24, d: 0.24}, {x: 0.0, y: 0.0, z: 0.0});
     limbs.push(torso);
 
     m = mat4();
@@ -77,9 +80,9 @@ function initLimbs(){
     m = mult(rotate(0.0, 0, 1, 0), m);
     m = mult(rotate(0, 0, 0, 1), m);
 
-    m = mult(translate(0.5, 0.0, 0.0), m);
+    m = mult(translate(0.8, 0.0, 0.0), m);
 
-    let neck = createLimb(m, "cuboid", -1, -1, "neck", 1);
+    let neck = createLimb(m, "cuboid", -1, -1, "neck", 1, {x: 0.8, y: 0.0, z: 0.0}, {w: 0.3, h: 0.15, d: 0.15}, {x: 0.0, y: 0.0, z: 0.0});
     limbs.push(neck);
 }
 
@@ -104,7 +107,7 @@ function drawLimb(limbIndex){
  * limbName = Name of the limb
  * limbNumber = Number of the limb
  */
-function createLimb(transform, shape, sibling, child, limbName, limbNumber) {
+function createLimb(transform, shape, sibling, child, limbName, limbNumber, pos, size, angle) {
     return {
         transform: transform,
         shape: shape,
@@ -112,17 +115,19 @@ function createLimb(transform, shape, sibling, child, limbName, limbNumber) {
         child: child,
         limbName: limbName,
         limbNumber: limbNumber,
+        pos: pos,
+        size: size,
+        angle: angle
     };
 }
 
 function processLimbs(limbName, limbNumber, transformation) {
-
     let limbIndex = getLimbPosition(limbName, limbNumber);
     limbs[limbIndex].transform = mult(transformation, limbs[limbIndex].transform);
 }
 
 function traverse(limbIndex) {
-    console.log(limbIndex);
+    //console.log(limbIndex);
 
     if (limbIndex < 0 ) return;
 
@@ -179,16 +184,12 @@ function bindEvents(gl, program, canvas) {
     });
 
 }
-let myCube = null;
-let myCube2 = null;
 
 function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     traverse(getLimbPosition("torso", 1));
     requestAnimFrame(render);
-    //console.log("sadaa");
 }
-
 
 window.onload = () => {
     canvas = document.querySelector( 'canvas' );
@@ -251,11 +252,12 @@ window.onload = () => {
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
     
-    let m = mat4();
-    m = mult(rotate(45, 0, 0, 1), m);
+
     initLimbs();
-    processLimbs("neck", 1, m);
-    processLimbs("torso", 1, m);
+
+    const neck = limbs[getLimbPosition("neck", 1)];
+    processLimbs("neck", 1, rotateAboutCorner(neck.pos, neck.size, {x: 0, y: 0, z: 30.0}));
+    processLimbs("torso", 1, mat4());
 
     render();
 };
