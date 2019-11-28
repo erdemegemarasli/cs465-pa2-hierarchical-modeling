@@ -75,7 +75,7 @@ function initLimbs() {
     let m = mat4();
 
     // Torso
-    let torso = createLimb(m, "pyramidEx", -1, 1, "torso", 1, {w: 1, h: 0.4, d: 0.4});
+    let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1, {w: 1, h: 0.4, d: 0.4});
     limbs.push(torso);
     rot("torso", 1, {x: 0, y: 0, z: 0});
     // trans("torso", 1, {x: 0.4, y: 0.0, z: 0.0});
@@ -304,10 +304,10 @@ window.onload = () => {
     modelViewMatrix = mat4();
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
-    let theEllipsoid = ellipsoid(1,1,1);
-    let theCuboid = cuboid(1,1,1);
-    let thePyramid = pyramid(1,1,1);
-    let thePyramidEx = pyramidEx(1,1,1);
+    let theEllipsoid = ellipsoid();
+    let theCuboid = cuboid();
+    let thePyramid = pyramid();
+    let thePyramidEx = pyramidEx();
     let points = [];
     let colors = [];
 

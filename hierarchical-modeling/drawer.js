@@ -1,23 +1,20 @@
 import { hex2rgb, generateRandomNumber } from './toolkit.js';
 
-export function cuboid(e1, e2, e3) {
+export function cuboid() {
     const cuboidObj = {};
     cuboidObj.points = [];
     cuboidObj.colors = [];
-    e1 = e1 / 2;
-    e2 = e2 / 2;
-    e3 = e3 / 2;
 
     const quad = (a, b, c, d) => {
         const vertices = [
-            vec4( -e1, -e2,  e3, 1.0 ),
-            vec4( -e1,  e2,  e3, 1.0 ),
-            vec4(  e1,  e2,  e3, 1.0 ),
-            vec4(  e1, -e2,  e3, 1.0 ),
-            vec4( -e1, -e2, -e3, 1.0 ),
-            vec4( -e1,  e2, -e3, 1.0 ),
-            vec4(  e1,  e2, -e3, 1.0 ),
-            vec4(  e1, -e2, -e3, 1.0 )      
+            vec4( -0.5, -0.5,  0.5, 1.0 ),
+            vec4( -0.5,  0.5,  0.5, 1.0 ),
+            vec4(  0.5,  0.5,  0.5, 1.0 ),
+            vec4(  0.5, -0.5,  0.5, 1.0 ),
+            vec4( -0.5, -0.5, -0.5, 1.0 ),
+            vec4( -0.5,  0.5, -0.5, 1.0 ),
+            vec4(  0.5,  0.5, -0.5, 1.0 ),
+            vec4(  0.5, -0.5, -0.5, 1.0 )      
         ];
 
         const vColors = [
@@ -49,27 +46,23 @@ export function cuboid(e1, e2, e3) {
     return cuboidObj;
 }
 
-export function ellipsoid(a, b, c) {
+export function ellipsoid() {
     const ellipsoidObj = {};
     ellipsoidObj.points = [];
     ellipsoidObj.colors = [];
 
-    a = a / 2;
-    b = b / 2;
-    c = c / 2;
-
     const edges  = 200;
 
     const x = (theta, phi) => {
-        return a * Math.sin(theta) * Math.cos(phi);
+        return 0.5 * Math.sin(theta) * Math.cos(phi);
     };
 
     const y = (theta, phi) => {
-        return b * Math.sin(theta) * Math.sin(phi);
+        return 0.5 * Math.sin(theta) * Math.sin(phi);
     };
 
     const z = (theta) => {
-        return c * Math.cos(theta);
+        return 0.5 * Math.cos(theta);
     };
 
     for (let theta = 0; theta < 180; theta += (180 / edges)) {
@@ -98,38 +91,34 @@ export function ellipsoid(a, b, c) {
     return ellipsoidObj;
 }
 
-export function pyramid(e1, e2, h) {
+export function pyramid() {
     const pyramidObj = {};
     pyramidObj.colors = [];
 
-    e1 = e1 / 2;
-    e2 = e2 / 2;
-    h = h / 2;
-
     pyramidObj.points = [
         // Front face
-        vec4(0.0,  h,  0.0, 1.0),
-        vec4(-e1, -h,  e2, 1.0),
-        vec4(e1, -h,  e2, 1.0),
+        vec4(0.0,  0.5,   0.0, 1.0),
+        vec4(-0.5, -0.5, 0.5, 1.0),
+        vec4(0.5, -0.5,  0.5, 1.0),
         // Right face
-        vec4(0.0,  h,  0.0, 1.0),
-        vec4(e1, -h,  e2, 1.0),
-        vec4(e1, -h, -e2, 1.0),
+        vec4(0.0,  0.5,  0.0, 1.0),
+        vec4(0.5, -0.5,  0.5, 1.0),
+        vec4(0.5, -0.5, -0.5, 1.0),
         // Back face
-        vec4(0.0,  h,  0.0, 1.0),
-        vec4(e1, -h, -e2, 1.0),
-        vec4(-e1, -h, -e2, 1.0),
+        vec4(0.0,  0.5,  0.0, 1.0),
+        vec4(0.5, -0.5, -0.5, 1.0),
+        vec4(-0.5, -0.5, -0.5, 1.0),
         // Left face
-        vec4(0.0,  h,  0.0, 1.0),
-        vec4(-e1, -h, -e2, 1.0),
-        vec4(-e1, -h,  e2, 1.0),
+        vec4(0.0,  0.5,  0.0, 1.0),
+        vec4(-0.5, -0.5, -0.5, 1.0),
+        vec4(-0.5, -0.5,  0.5, 1.0),
         // Bottom
-        vec4(  e1, -h,  e2, 1.0 ),
-        vec4( -e1, -h,  e2, 1.0 ),
-        vec4( -e1, -h, -e2, 1.0 ),
-        vec4(  e1, -h,  e2, 1.0 ),
-        vec4( -e1, -h, -e2, 1.0 ),
-        vec4(  e1, -h, -e2, 1.0 )
+        vec4(  0.5, -0.5,  0.5, 1.0 ),
+        vec4( -0.5, -0.5,  0.5, 1.0 ),
+        vec4( -0.5, -0.5, -0.5, 1.0 ),
+        vec4(  0.5, -0.5,  0.5, 1.0 ),
+        vec4( -0.5, -0.5, -0.5, 1.0 ),
+        vec4(  0.5, -0.5 -0.5, 1.0 )
     ];
 
     pyramidObj.colors = [
@@ -161,65 +150,61 @@ export function pyramid(e1, e2, h) {
     return pyramidObj;
 }
 
-export function pyramidEx(e1, e2, h) {
+export function pyramidEx() {
     const pyramidObj = {};
     pyramidObj.colors = [];
 
-    e1 = e1 / 2;
-    e2 = e2 / 2;
-    h = h / 2;
-
     pyramidObj.points = [
         // Front face
-        vec4(-1,        0,    1,      1.0),
-        vec4(-1 / 3,    2 / 3,  1 / 3,  1.0),
-        vec4(1 / 3,     2 / 3,  1 / 3,  1.0),
-        vec4(-1,        0,    1,      1.0),
-        vec4(1,         0,    1,      1.0),
-        vec4(1 / 3,     2 / 3,  1 / 3,  1.0),
+        vec4(-0.5,        0,    0.5,      1.0),
+        vec4(-0.5 / 3,    0.5 * 2 / 3,  0.5 / 3,  1.0),
+        vec4(0.5 / 3,     0.5 * 2 / 3,  0.5 / 3,  1.0),
+        vec4(-0.5,        0,    0.5,      1.0),
+        vec4(0.5,         0,    0.5,      1.0),
+        vec4(0.5 / 3,     0.5 * 2 / 3,  0.5 / 3,  1.0),
 
-        vec4(1,        0,    1,      1.0),
-        vec4(1 / 3,    2 / 3,  1 / 3,  1.0),
-        vec4(1 / 3,     2 / 3,  -1 / 3,  1.0),
-        vec4(1,        0,    1,      1.0),
-        vec4(1,         0.0,    -1,      1.0),
-        vec4(1 / 3,     2 / 3,  -1 / 3,  1.0),
-
-
-        vec4(1,        0,    -1,      1.0),
-        vec4(1 / 3,    2 / 3,  -1 / 3,  1.0),
-        vec4(-1 / 3,     2 / 3,  -1 / 3,  1.0),
-        vec4(1,        0,    -1,      1.0),
-        vec4(-1,         0,    -1,      1.0),
-        vec4(-1 / 3,     2 / 3,  -1 / 3,  1.0),
+        vec4(0.5,        0,    0.5,      1.0),
+        vec4(0.5 / 3,    0.5 * 2 / 3,  0.5 / 3,  1.0),
+        vec4(0.5 / 3,     0.5 * 2 / 3,  -0.5 / 3,  1.0),
+        vec4(0.5,        0,    0.5,      1.0),
+        vec4(0.5,         0.0,    -0.5,      1.0),
+        vec4(0.5 / 3,     0.5 * 2 / 3,  -0.5 / 3,  1.0),
 
 
+        vec4(0.5,        0,    -0.5,      1.0),
+        vec4(0.5 / 3,    0.5 * 2 / 3,  -0.5 / 3,  1.0),
+        vec4(-0.5 / 3,     0.5 * 2 / 3,  -0.5 / 3,  1.0),
+        vec4(0.5,        0,    -0.5,      1.0),
+        vec4(-0.5,         0,    -0.5,      1.0),
+        vec4(-0.5 / 3,     0.5 * 2 / 3,  -0.5 / 3,  1.0),
 
-        vec4(-1,        0,    -1,      1.0),
-        vec4(-1 / 3,    2 / 3,  -1 / 3,  1.0),
-        vec4(-1 / 3,     2 / 3,  1 / 3,  1.0),
-        vec4(-1,        0,    -1,      1.0),
-        vec4(-1,         0,    1,      1.0),
-        vec4(-1 / 3,     2 / 3,  1 / 3,  1.0),
+
+
+        vec4(-0.5,        0,    -0.5,      1.0),
+        vec4(-0.5 / 3,    0.5 * 2 / 3,  -0.5 / 3,  1.0),
+        vec4(-0.5 / 3,     0.5 * 2 / 3,  0.5 / 3,  1.0),
+        vec4(-0.5,        0,    -0.5,      1.0),
+        vec4(-0.5,         0,    0.5,      1.0),
+        vec4(-0.5 / 3,     0.5 * 2 / 3,  0.5 / 3,  1.0),
 
 
         
         // Bottom
-        vec4(  1, 0,  1, 1.0 ),
-        vec4( -1, 0,  1, 1.0 ),
-        vec4( -1, 0, -1, 1.0 ),
-        vec4(  1, 0,  1, 1.0 ),
-        vec4( -1, 0, -1, 1.0 ),
-        vec4(  1, 0, -1, 1.0 ),
+        vec4(  0.5, 0,  0.5, 1.0 ),
+        vec4( -0.5, 0,  0.5, 1.0 ),
+        vec4( -0.5, 0, -0.5, 1.0 ),
+        vec4(  0.5, 0,  0.5, 1.0 ),
+        vec4( -0.5, 0, -0.5, 1.0 ),
+        vec4(  0.5, 0, -0.5, 1.0 ),
 
 
         // Top
-        vec4(  1 / 3, 2 / 3,  1 / 3, 1.0 ),
-        vec4( -1 / 3, 2 / 3,  1 / 3, 1.0 ),
-        vec4( -1 / 3, 2 / 3, -1 / 3, 1.0 ),
-        vec4(  1 / 3, 2 / 3,  1 / 3, 1.0 ),
-        vec4( -1 / 3, 2 / 3, -1 / 3, 1.0 ),
-        vec4(  1 / 3, 2 / 3, -1 / 3, 1.0 )
+        vec4(  0.5 / 3, 0.5 * 2 / 3,  0.5 / 3, 1.0 ),
+        vec4( -0.5 / 3, 0.5 * 2 / 3,  0.5 / 3, 1.0 ),
+        vec4( -0.5 / 3, 0.5 * 2 / 3, -0.5 / 3, 1.0 ),
+        vec4(  0.5 / 3, 0.5 * 2 / 3,  0.5 / 3, 1.0 ),
+        vec4( -0.5 / 3, 0.5 * 2 / 3, -0.5 / 3, 1.0 ),
+        vec4(  0.5 / 3, 0.5 * 2 / 3, -0.5 / 3, 1.0 )
     ];
 
     pyramidObj.colors = [
