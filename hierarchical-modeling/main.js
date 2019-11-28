@@ -62,7 +62,6 @@ function getLimbPosition(limbName, limbNumber){
 function initLimbs(){
     
     let m = mat4();
-    m = mult(scale4(0.6, 0.24, 0.24), m);
 
     m = mult(rotate(0.0, 1, 0, 0), m);
     m = mult(rotate(0.0, 0, 1, 0), m);
@@ -74,7 +73,6 @@ function initLimbs(){
     limbs.push(torso);
 
     m = mat4();
-    m = mult(scale4(0.3, 0.15, 0.15), m);
 
     m = mult(rotate(0.0, 1, 0, 0), m);
     m = mult(rotate(0.0, 0, 1, 0), m);
@@ -88,7 +86,9 @@ function initLimbs(){
 
 function drawLimb(limbIndex){
 
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+    const m = mult(modelViewMatrix, scale4(limbs[limbIndex].size.w, limbs[limbIndex].size.h, limbs[limbIndex].size.d));
+
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(m));
     if (limbs[limbIndex].shape === "ellipsoid"){
         gl.drawArrays(gl.TRIANGLES, ellipsoidIndex, ellipsoidLength);
     }
@@ -256,7 +256,7 @@ window.onload = () => {
     initLimbs();
 
     const neck = limbs[getLimbPosition("neck", 1)];
-    processLimbs("neck", 1, rotateAboutCorner(neck.pos, neck.size, {x: 0, y: 0, z: 30.0}));
+    processLimbs("neck", 1, rotateAboutCorner(neck.pos, neck.size, {x: 0, y: 0, z: 45.0}));
     processLimbs("torso", 1, mat4());
 
     render();
