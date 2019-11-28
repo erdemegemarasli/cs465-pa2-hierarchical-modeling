@@ -32,16 +32,29 @@ function scale4(a, b, c) {
     return result;
 }
 
-function rotateAboutCorner(limbName, limbNumber, angle) {
-    const limb = limbs[getLimbPosition(limbName, limbNumber)];
+function trans(limbName, limbNumber, value)  {
+    limbs[getLimbPosition(limbName, limbNumber)].pos.x += value.x;
+    limbs[getLimbPosition(limbName, limbNumber)].pos.y += value.y;
+    limbs[getLimbPosition(limbName, limbNumber)].pos.z += value.z;
+    processLimbs(limbName, limbNumber, translate(value.x, value.y, value.z));
+}
 
+function rot(limbName, limbNumber, value) {
+    limbs[getLimbPosition(limbName, limbNumber)].angle.x += value.x;
+    limbs[getLimbPosition(limbName, limbNumber)].angle.y += value.y;
+    limbs[getLimbPosition(limbName, limbNumber)].angle.z += value.z;
+    const limb = limbs[getLimbPosition(limbName, limbNumber)];
+    processLimbs(limbName, limbNumber, rotateAboutCorner(limb.pos, limb.size, {x: value.x, y: value.y, z: value.z}));
+}
+
+function rotateAboutCorner(pos, size, angle) {
     let m = mat4();
 
-    m = mult(translate(-limb.pos.x, -limb.pos.y + 0.5 * limb.size.h, -limb.pos.z), m);
+    m = mult(translate(-pos.x, -pos.y + 0.5 * size.h, -pos.z), m);
     m = mult(rotate(angle.x, 1, 0, 0), m);
     m = mult(rotate(angle.y, 0, 1, 0), m);
     m = mult(rotate(angle.z, 0, 0, 1), m);
-    m = mult(translate(limb.pos.x, limb.pos.y - 0.5 * limb.size.h, limb.pos.z), m);
+    m = mult(translate(pos.x, pos.y - 0.5 * size.h, pos.z), m);
 
     return m;
 }
@@ -59,17 +72,19 @@ function getLimbPosition(limbName, limbNumber) {
 function initLimbs() {
     let m = mat4();
 
-    // rotateAboutCorner("neck", 1, {x: 0, y: 0, z: 0.0})
-    // translate(0.45, 0.5, 0.0)
-
     let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1, {x: 0.0, y: 0.0, z: 0.0}, {w: 0.6, h: 0.24, d: 0.24}, {x: 0.0, y: 0.0, z: 0.0});
     limbs.push(torso);
 
-    let neck = createLimb(m, "cuboid", -1, -1, "neck", 1, {x: 0.45, y: 0.0, z: 0.0}, {w: 0.15, h: 0.3, d: 0.15}, {x: 0.0, y: 0.0, z: 0.0});
+    let neck = createLimb(m, "cuboid", -1, -1, "neck", 1, {x: 0.0, y: 0.0, z: 0.0}, {w: 0.05, h: 0.2, d: 0.05}, {x: 0.0, y: 0.0, z: 0.0});
     limbs.push(neck);
 
-    let neckInit = rotateAboutCorner("neck", 1, {x: 0, y: 0, z: 90});
-    limbs[getLimbPosition("neck", 1)].transform = neckInit;
+    trans("neck", 1, {x: 0.5, y: 0.0, z: 0.0});
+    rot("neck", 1, {x: 0, y: 0, z: 45.0});
+    trans("neck", 1, {x: -1, y: 0.0, z: 0.0});
+
+    rot("torso", 1, {x: 0, y: 0, z: 45.0});
+    trans("torso", 1, {x: 0.5, y: 0.0, z: 0.0});
+    
 }
 
 function drawLimb(limbIndex){
@@ -242,5 +257,8 @@ window.onload = () => {
     
 
     initLimbs();
+
+
+  
     render();
 };
