@@ -4,7 +4,7 @@
  */
 
 import { hex2rgb, downloadObjectAsJson } from './toolkit.js';
-import { ellipsoid, cuboid, pyramid } from './drawer.js';
+import { ellipsoid, cuboid, pyramid, pyramidEx } from './drawer.js';
 
 
 // WebGL Properties
@@ -19,6 +19,8 @@ let cuboidIndex = 0;
 let cuboidLength = 0;
 let pyramidIndex = 0;
 let pyramidLength = 0;
+let pyramidExIndex = 0;
+let pyramidExLength = 0;
 let stack = [];
 
 let limbs = [];
@@ -73,7 +75,7 @@ function initLimbs() {
     let m = mat4();
 
     // Torso
-    let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1, {w: 1, h: 0.4, d: 0.4});
+    let torso = createLimb(m, "pyramidEx", -1, 1, "torso", 1, {w: 1, h: 0.4, d: 0.4});
     limbs.push(torso);
     rot("torso", 1, {x: 0, y: 0, z: 0});
     // trans("torso", 1, {x: 0.4, y: 0.0, z: 0.0});
@@ -152,14 +154,17 @@ function drawLimb(limbIndex){
     const m = mult(modelViewMatrix, scale4(limbs[limbIndex].size.w, limbs[limbIndex].size.h, limbs[limbIndex].size.d));
 
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(m));
-    if (limbs[limbIndex].shape === "ellipsoid"){
+    if (limbs[limbIndex].shape === "ellipsoid") {
         gl.drawArrays(gl.TRIANGLE_FAN, ellipsoidIndex, ellipsoidLength);
     }
-    else if(limbs[limbIndex].shape === "cuboid"){
+    else if(limbs[limbIndex].shape === "cuboid") {
         gl.drawArrays(gl.TRIANGLES, cuboidIndex, cuboidLength);
     }
-    else if(limbs[limbIndex].shape === "pyramid"){
+    else if(limbs[limbIndex].shape === "pyramid") {
         gl.drawArrays(gl.TRIANGLES, pyramidIndex, pyramidLength);
+    }
+    else if(limbs[limbIndex].shape === "pyramidEx") {
+        gl.drawArrays(gl.TRIANGLES, pyramidExIndex, pyramidExLength);
     }
 }
 /**
@@ -302,6 +307,7 @@ window.onload = () => {
     let theEllipsoid = ellipsoid(1,1,1);
     let theCuboid = cuboid(1,1,1);
     let thePyramid = pyramid(1,1,1);
+    let thePyramidEx = pyramidEx(1,1,1);
     let points = [];
     let colors = [];
 
@@ -317,9 +323,14 @@ window.onload = () => {
     pyramidIndex = ellipsoidLength + cuboidLength;
     pyramidLength = thePyramid.points.length;
 
+    points = points.concat(thePyramidEx.points);
+    pyramidExIndex = ellipsoidLength + cuboidLength + pyramidLength;
+    pyramidExLength = thePyramidEx.points.length;
+
     colors = colors.concat(theEllipsoid.colors);
     colors = colors.concat(theCuboid.colors);
     colors = colors.concat(thePyramid.colors);
+    colors = colors.concat(thePyramidEx.colors);
 
     const cBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
