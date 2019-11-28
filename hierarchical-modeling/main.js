@@ -72,19 +72,79 @@ function getLimbPosition(limbName, limbNumber) {
 function initLimbs() {
     let m = mat4();
 
-    let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1, {x: 0.0, y: 0.0, z: 0.0}, {w: 0.6, h: 0.24, d: 0.24}, {x: 0.0, y: 0.0, z: 0.0});
+    // Torso
+    let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1, {w: 1, h: 0.4, d: 0.4});
     limbs.push(torso);
+    rot("torso", 1, {x: 0, y: 0, z: 0});
+    // trans("torso", 1, {x: 0.4, y: 0.0, z: 0.0});
 
-    let neck = createLimb(m, "cuboid", -1, -1, "neck", 1, {x: 0.0, y: 0.0, z: 0.0}, {w: 0.05, h: 0.2, d: 0.05}, {x: 0.0, y: 0.0, z: 0.0});
+    // Neck
+    let neck = createLimb(m, "cuboid", 2, -1, "neck", 1, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(neck);
+    trans("neck", 1, {x: -0.4, y: 0.2, z: 0.0});
+    rot("neck", 1, {x: 0, y: 0, z: 60});
 
-    trans("neck", 1, {x: 0.5, y: 0.0, z: 0.0});
-    rot("neck", 1, {x: 0, y: 0, z: 45.0});
-    trans("neck", 1, {x: -1, y: 0.0, z: 0.0});
+    // UpperLeg-FrontLeft
+    let uLegFL = createLimb(m, "cuboid", 3, 7, "upperLeg", 1, {w: 0.1, h: 0.3, d: 0.05});
+    limbs.push(uLegFL);
+    trans("upperLeg", 1, {x: -0.3, y: 0.04, z: -0.05});
+    rot("upperLeg", 1, {x: 0, y: 0, z: 180});
+    rot("upperLeg", 1, {x: 0, y: 0, z: 45});
 
-    rot("torso", 1, {x: 0, y: 0, z: 45.0});
-    trans("torso", 1, {x: 0.5, y: 0.0, z: 0.0});
-    
+    // UpperLeg-FrontRight
+    let uLegFR = createLimb(m, "cuboid", 4, 8, "upperLeg", 2, {w: 0.1, h: 0.3, d: 0.05});
+    limbs.push(uLegFR);
+    trans("upperLeg", 2, {x: -0.3, y: 0.04, z: 0.05});
+    rot("upperLeg", 2, {x: 0, y: 0, z: 180});
+    rot("upperLeg", 2, {x: 0, y: 0, z: 45});
+
+    // UpperLeg-BackLeft
+    let uLegBL = createLimb(m, "cuboid", 5, 9, "upperLeg", 3, {w: 0.1, h: 0.3, d: 0.05});
+    limbs.push(uLegBL);
+    trans("upperLeg", 3, {x: 0.2, y: 0.04, z: -0.05});
+    rot("upperLeg", 3, {x: 0, y: 0, z: 180});
+    rot("upperLeg", 3, {x: 0, y: 0, z: 45});
+
+    // UpperLeg-BackRight
+    let uLegBR = createLimb(m, "cuboid", 6, 10, "upperLeg", 4, {w: 0.1, h: 0.3, d: 0.05});
+    limbs.push(uLegBR);
+    trans("upperLeg", 4, {x: 0.2, y: 0.04, z: 0.05});
+    rot("upperLeg", 4, {x: 0, y: 0, z: 180});
+    rot("upperLeg", 4, {x: 0, y: 0, z: 45});
+
+    // UpperTail
+    let uTail = createLimb(m, "ellipsoid", -1, -1, "upperTail", 1, {w: 0.1, h: 0.4, d: 0.05});
+    limbs.push(uTail);
+    trans("upperTail", 1, {x: 0.42, y: 0.2, z: 0.0});
+    rot("upperTail", 1, {x: 0, y: 0, z: -120});
+
+
+
+    // LowerLeg-FrontLeft
+    let lLegFL = createLimb(m, "cuboid", -1, -1, "lowerLeg", 1, {w: 0.1, h: 0.3, d: 0.05});
+    limbs.push(lLegFL);
+    trans("lowerLeg", 1, {x: -0.02, y: 0.25, z: 0});
+    rot("lowerLeg", 1, {x: 0, y: 0, z: -45});
+
+    // LowerLeg-FrontRight
+    let lLegFR = createLimb(m, "cuboid", -1, -1, "lowerLeg", 2, {w: 0.1, h: 0.3, d: 0.05});
+    limbs.push(lLegFR);
+    trans("lowerLeg", 2, {x: -0.02, y: 0.25, z: 0});
+    rot("lowerLeg", 2, {x: 0, y: 0, z: -45});
+
+
+    // LowerLeg-BackLeft
+    let lLegBL = createLimb(m, "cuboid", -1, -1, "lowerLeg", 3, {w: 0.1, h: 0.3, d: 0.05});
+    limbs.push(lLegBL);
+    trans("lowerLeg", 3, {x: -0.02, y: 0.25, z: 0});
+    rot("lowerLeg", 3, {x: 0, y: 0, z: -45});
+
+
+    // LowerLeg-BackRight
+    let lLegBR = createLimb(m, "cuboid", -1, -1, "lowerLeg", 4, {w: 0.1, h: 0.3, d: 0.05});
+    limbs.push(lLegBR);
+    trans("lowerLeg", 4, {x: -0.02, y: 0.25, z: 0});
+    rot("lowerLeg", 4, {x: 0, y: 0, z: -45});
 }
 
 function drawLimb(limbIndex){
@@ -93,7 +153,7 @@ function drawLimb(limbIndex){
 
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(m));
     if (limbs[limbIndex].shape === "ellipsoid"){
-        gl.drawArrays(gl.TRIANGLES, ellipsoidIndex, ellipsoidLength);
+        gl.drawArrays(gl.TRIANGLE_FAN, ellipsoidIndex, ellipsoidLength);
     }
     else if(limbs[limbIndex].shape === "cuboid"){
         gl.drawArrays(gl.TRIANGLES, cuboidIndex, cuboidLength);
@@ -110,7 +170,7 @@ function drawLimb(limbIndex){
  * limbName = Name of the limb
  * limbNumber = Number of the limb
  */
-function createLimb(transform, shape, sibling, child, limbName, limbNumber, pos, size, angle) {
+function createLimb(transform, shape, sibling, child, limbName, limbNumber, size) {
     return {
         transform: transform,
         shape: shape,
@@ -118,9 +178,9 @@ function createLimb(transform, shape, sibling, child, limbName, limbNumber, pos,
         child: child,
         limbName: limbName,
         limbNumber: limbNumber,
-        pos: pos,
+        pos: {x: 0.0, y: 0.0, z: 0.0},
         size: size,
-        angle: angle
+        angle: {x: 0.0, y: 0.0, z: 0.0}
     };
 }
 
@@ -130,9 +190,11 @@ function processLimbs(limbName, limbNumber, transformation) {
 }
 
 function traverse(limbIndex) {
-    //console.log(limbIndex);
+    
 
     if (limbIndex < 0 ) return;
+
+    console.log(limbIndex);
 
     stack.push(modelViewMatrix);
     modelViewMatrix = mult(modelViewMatrix, limbs[limbIndex].transform);
@@ -174,6 +236,27 @@ function bindEvents(gl, program, canvas) {
         }           
     });
 
+    $(document).keypress(e => {
+        if (e.charCode === 119) { // W
+            rot("torso", 1, {x: 10, y: 0, z: 0});
+        }
+        else if (e.charCode === 115) { // S
+            rot("torso", 1, {x: -10, y: 0, z: 0});
+        }
+        else if (e.charCode === 97) { // A
+            rot("torso", 1, {x: 0, y: 10, z: 0});
+        }
+        else if (e.charCode === 100) { // D
+            rot("torso", 1, {x: 0, y: -10, z: 0});
+        }
+        else if (e.charCode === 113) { // Q
+            rot("torso", 1, {x: 0, y: 0, z: 10});
+        }
+        else if (e.charCode === 101) { // E
+            rot("torso", 1, {x: 0, y: 0, z: -10});
+        }
+    });
+
     $('#saveButton').click(() => {
         downloadObjectAsJson({}, "data");
     });
@@ -185,7 +268,6 @@ function bindEvents(gl, program, canvas) {
     $('canvas').click(event => {
         
     });
-
 }
 
 function render() {

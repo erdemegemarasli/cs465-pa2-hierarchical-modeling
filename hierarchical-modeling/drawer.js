@@ -1,3 +1,5 @@
+import { hex2rgb, generateRandomNumber } from './toolkit.js';
+
 export function cuboid(e1, e2, e3) {
     const cuboidObj = {};
     cuboidObj.points = [];
@@ -56,8 +58,7 @@ export function ellipsoid(a, b, c) {
     b = b / 2;
     c = c / 2;
 
-    const edges  = 100;
-    const angle = 360 / edges;
+    const edges  = 200;
 
     const x = (theta, phi) => {
         return a * Math.sin(theta) * Math.cos(phi);
@@ -71,27 +72,27 @@ export function ellipsoid(a, b, c) {
         return c * Math.cos(theta);
     };
 
-    for (let theta = 0; theta < 180; theta += angle) {
-        for (let phi = 0; phi < 360; phi += angle) {
+    for (let theta = 0; theta < 180; theta += (180 / edges)) {
+        for (let phi = 0; phi < 360; phi += (360 / edges)) {
             ellipsoidObj.points.push(vec4( x(theta, phi), y(theta, phi),  z(theta), 1.0 ));
         }
     }
 
     const numOfPoints = ellipsoidObj.points.length;
 
+    const brown1 = hex2rgb('#613a00');
+    const brown2 = hex2rgb('#713a00');
+    const brown3 = hex2rgb('#813a00');
+
     const vColors = [
-        [ 0.0, 0.0, 0.0, 1.0 ],  // black
-        [ 1.0, 0.0, 0.0, 1.0 ],  // red
-        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
-        [ 0.0, 1.0, 0.0, 1.0 ],  // green
-        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
-        [ 1.0, 0.0, 1.0, 1.0 ],  // magenta
-        [ 0.0, 1.0, 1.0, 1.0 ],  // cyan
-        [ 1.0, 1.0, 1.0, 1.0 ]   // white
+        
+        [ brown1.r, brown1.g, brown1.b, 1.0 ],
+        [ brown2.r, brown2.g, brown2.b, 1.0 ],
+        [ brown3.r, brown3.g, brown3.b, 1.0 ],
     ];
 
     for (let i = 0; i < numOfPoints; i++) {
-        ellipsoidObj.colors.push(vColors[i % vColors.length]);
+         ellipsoidObj.colors.push(vColors[Math.round(generateRandomNumber(0, 2))]);
     }
 
     return ellipsoidObj;
