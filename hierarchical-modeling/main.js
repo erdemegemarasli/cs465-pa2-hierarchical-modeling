@@ -26,11 +26,25 @@ let limbs = [];
 //let rootLimb = null;
 
 function scale4(a, b, c) {
-    var result = mat4();
+    const result = mat4();
     result[0][0] = a;
     result[1][1] = b;
     result[2][2] = c;
     return result;
+}
+
+function rotateAboutCorner(pos, size, angle) {
+    let m = mat4();
+    
+    m = mult(translate(-pos.x, -pos.y, -pos.z), m);
+    m = mult(translate(size.h / 2, size.w / 2, size.d / 2), m);
+    m = mult(rotate(angle.x, 1, 0, 0), m);
+    m = mult(rotate(angle.y, 0, 1, 0), m);
+    m = mult(rotate(angle.z, 1, 0, 1), m);
+    m = mult(translate(-size.h / 2, -size.w / 2, -size.d / 2), m);
+    m = mult(translate(pos.x, pos.y, pos.z), m);
+
+    return m;
 }
 
 // Returns he index of the given limb
@@ -109,13 +123,20 @@ function processLimbs(limbName, limbNumber, transformation) {
 
 function traverse(limbIndex) {
     console.log(limbIndex);
+
     if (limbIndex < 0 ) return;
+
     stack.push(modelViewMatrix);
     modelViewMatrix = mult(modelViewMatrix, limbs[limbIndex].transform);
+    
     drawLimb(limbIndex);
-    if (limbs[limbIndex].child != null) traverse(limbs[limbIndex].child);
+    
+    if (limbs[limbIndex].child != null) 
+        traverse(limbs[limbIndex].child);
     modelViewMatrix = stack.pop();
-    if (limbs[limbIndex].sibling != null) traverse(limbs[limbIndex].sibling);
+    
+    if (limbs[limbIndex].sibling != null)
+        traverse(limbs[limbIndex].sibling);
 }
 
 /**
