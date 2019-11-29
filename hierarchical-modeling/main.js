@@ -13,6 +13,8 @@ let gl = null;
 let program = null;
 let modelViewMatrixLoc = null;
 let modelViewMatrix = null;
+let projectionMatrixLoc = null;
+let projectionMatrix = null;
 let ellipsoidIndex = 0;
 let ellipsoidLength = 0;
 let cuboidIndex = 0;
@@ -27,6 +29,8 @@ let currentKeyFrame = {};
 let limbsIncrement = [];
 const interPolationLimit = 100;
 let animationCount = 0;
+
+let viewToggle = false;
 
 let keyFrames = [];
 //let rootLimb = null;
@@ -489,6 +493,14 @@ function bindEvents() {
     $('#addButton').click(() => {
         saveFrame();
     });
+
+    $('#viewButton').click(() => {
+        const eye = vec3(2.5, 1.5, 1.0);
+        const at = vec3(0.0, 0.0, 0.0);
+        const up = vec3(0.0, 1.0, 0.0);
+        
+        modelViewMatrix = mult(mat4(), lookAt(eye, at, up));
+    });
 }
 
 function render() {
@@ -496,6 +508,26 @@ function render() {
     traverse(getLimbPosition("torso", 1));
     requestAnimFrame(render);
     
+}
+
+function moveCamera(r, theta, phi) {
+    const x = (r, theta, phi) => {
+        return r * Math.sin(theta) * Math.cos(phi);
+    };
+
+    const y = (r, theta, phi) => {
+        return r * Math.sin(theta) * Math.sin(phi);
+    };
+
+    const z = (r, theta) => {
+        return r * Math.cos(theta);
+    };
+
+    const eye = vec3(x(r, theta, phi), y(r, theta, phi), z(r, theta));
+    const at = vec3(0.0, 0.0, 0.0);
+    const up = vec3(0.0, 1.0, 0.0);
+    modelViewMatrix = lookAt(eye, at, up);
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 }
 
 window.onload = () => {
@@ -518,9 +550,15 @@ window.onload = () => {
     bindEvents(gl, program, canvas);
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
+    projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
 
     modelViewMatrix = mat4();
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+
+    projectionMatrix = ortho(-2.0, 2.0, -2.0, 2.0, -4.0, 4.0);
+
+    // projectionMatrix = mat4();
+    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
     let theEllipsoid = ellipsoid();
     let theCuboid = cuboid();

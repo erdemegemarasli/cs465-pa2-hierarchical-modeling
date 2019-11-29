@@ -22,9 +22,10 @@
             varying vec4 color;
 
             uniform mat4 modelViewMatrix;
+            uniform mat4 projectionMatrix;
 
             void main() {
-                gl_Position = modelViewMatrix * vPosition;
+                gl_Position = projectionMatrix * modelViewMatrix * vPosition;
                 color = vColor;
             }
         </script>
@@ -71,7 +72,7 @@
                         <div class="header">Main Controls</div>
                         <div class="description">
                             <div class="limb-control-box-row">
-                                <button id="saveButton" class="ui fluid green labeled icon button"><i class="download icon"></i>Save</button>
+                                <button id="saveButton" class="ui fluid blue labeled icon button"><i class="download icon"></i>Save</button>
                             </div>
 
                             <div class="limb-control-box-row">
@@ -79,11 +80,15 @@
                             </div>
 
                             <div class="limb-control-box-row">
-                                <button id="playButton" class="ui fluid blue labeled icon button"><i class="upload icon"></i>Play</button>
+                                <button id="playButton" class="ui fluid blue labeled icon button"><i class="play icon"></i>Play</button>
                             </div>
 
                             <div class="limb-control-box-row">
-                                <button id="addButton" class="ui fluid blue labeled icon button"><i class="upload icon"></i>Add Frame</button>
+                                <button id="addButton" class="ui fluid blue labeled icon button"><i class="file video outline icon"></i>Add Frame</button>
+                            </div>
+
+                            <div class="limb-control-box-row">
+                                <button id="viewButton" class="ui fluid blue labeled icon button"><i class="street view icon"></i>Change View</button>
                             </div>
                         </div>
                     </div>
