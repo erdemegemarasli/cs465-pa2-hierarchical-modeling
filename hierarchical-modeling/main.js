@@ -22,8 +22,13 @@ let pyramidLength = 0;
 let pyramidExIndex = 0;
 let pyramidExLength = 0;
 let stack = [];
-
 let limbs = [];
+let currentKeyFrame = {};
+let limbsIncrement = [];
+const interPolationLimit = 100;
+let animationCount = 0;
+
+let keyFrames = [];
 //let rootLimb = null;
 
 function scale4(a, b, c) {
@@ -35,28 +40,261 @@ function scale4(a, b, c) {
 }
 
 function trans(limbName, limbNumber, value)  {
-    limbs[getLimbPosition(limbName, limbNumber)].pos.x += value.x;
-    limbs[getLimbPosition(limbName, limbNumber)].pos.y += value.y;
-    limbs[getLimbPosition(limbName, limbNumber)].pos.z += value.z;
-    processLimbs(limbName, limbNumber, translate(value.x, value.y, value.z));
+    limbs[getLimbPosition(limbName, limbNumber)].pos = add(limbs[getLimbPosition(limbName, limbNumber)].pos, value);
+    processLimbs(limbName, limbNumber, translate(value[0], value[1], value[2]));
 }
 
 function rot(limbName, limbNumber, value) {
-    limbs[getLimbPosition(limbName, limbNumber)].angle.x += value.x;
-    limbs[getLimbPosition(limbName, limbNumber)].angle.y += value.y;
-    limbs[getLimbPosition(limbName, limbNumber)].angle.z += value.z;
+    limbs[getLimbPosition(limbName, limbNumber)].angle = add(limbs[getLimbPosition(limbName, limbNumber)].angle, value);
     const limb = limbs[getLimbPosition(limbName, limbNumber)];
-    processLimbs(limbName, limbNumber, rotateAboutCorner(limb.pos, limb.size, {x: value.x, y: value.y, z: value.z}));
+    processLimbs(limbName, limbNumber, rotateAboutCorner(limb.pos, limb.size, value));
 }
+//Stackoverflow
+function sleep(milliseconds) {
+    var start = new Date().getTime();
+    for (var i = 0; i < 1e7; i++) {
+      if ((new Date().getTime() - start) > milliseconds){
+        break;
+      }
+    }
+  }
+
+function saveFrame(){
+    keyFrames.push(deepCopy(limbs));
+}
+
+function deepCopy(input) {
+    const newLimbs = [];
+
+    for (let i = 0; i < input.length; i++) {
+        const newLimb = {};
+        newLimb.transform = mult(mat4(), input[i].transform);
+        newLimb.shape = input[i].shape;
+        newLimb.sibling = input[i].sibling;
+        newLimb.child = input[i].child;
+        newLimb.sibling = input[i].sibling;
+        newLimb.limbName = input[i].limbName;
+        newLimb.limbNumber = input[i].limbNumber;
+
+        newLimb.pos = vec3(input[i].pos[0], input[i].pos[1], input[i].pos[2]);
+
+        newLimb.size = {};
+        newLimb.size.w = input[i].size.w;
+        newLimb.size.d = input[i].size.d;
+        newLimb.size.h = input[i].size.h;
+
+        newLimb.angle = vec3(input[i].angle[0], input[i].angle[1], input[i].angle[2]);
+
+        newLimbs.push(newLimb);
+    }
+    
+
+    return newLimbs;
+}
+
+function addControlBox(limb, translationAllowed) {
+    let box = $("#limb-control-box-template").clone();
+    box.attr('id', limb.limbName + limb.limbNumber);
+    box.css('display', 'block');
+    box.appendTo( "#control-box" );
+
+    box.find('div.header').text(limb.limbName + ' - ' + limb.limbNumber);
+
+    const knobX = box.find('.dial')[0];
+    const knobY = box.find('.dial')[1];
+    const knobZ = box.find('.dial')[2];
+
+    $(knobX).knob({
+        min: 0,
+        max: 360,
+        angleOffset: 90,
+        step: 5,
+        rotation: 'anticlockwise',
+        change: function() {
+            const angle = $(this.$).val();
+            const inc = angle - limb.angle[0];
+            rot(limb.limbName, limb.limbNumber, vec3(inc, 0, 0));
+        }
+    });
+
+    $(knobY).knob({
+        min: 0,
+        max: 360,
+        angleOffset: 90,
+        step: 5,
+        rotation: 'anticlockwise',
+        change: function() {
+            const angle = $(this.$).val();
+            const inc = angle - limb.angle[1];
+            rot(limb.limbName, limb.limbNumber, vec3(0, inc, 0));
+        }
+    });
+
+    $(knobZ).knob({
+        min: 0,
+        max: 360,
+        angleOffset: 90,
+        step: 5,
+        rotation: 'anticlockwise',
+        change: function() {
+            const angle = $(this.$).val();
+            const inc = angle - limb.angle[2];
+            rot(limb.limbName, limb.limbNumber, vec3(0, 0, inc));
+        }
+    });
+
+    $(knobX).val(limb.angle[0]);
+    $(knobY).val(limb.angle[1]);
+    $(knobZ).val(limb.angle[2]);
+    
+    if (translationAllowed) {
+        const sliderX = box.find('.slider')[0];
+        const sliderY = box.find('.slider')[1];
+        const sliderZ = box.find('.slider')[2];
+
+        $(sliderX).slider({
+            min: -1,
+            max: 1,
+            value: 0,
+            step: 0.01,
+            slide: function(event, ui) {
+                const val = ui.value;
+                const inc = val - limb.pos[0];
+                trans(limb.limbName, limb.limbNumber, vec3(inc, 0, 0));
+            }
+        });
+
+        $(sliderY).slider({
+            min: -1,
+            max: 1,
+            value: 0,
+            step: 0.01,
+            slide: function(event, ui) {
+                const val = ui.value;
+                const inc = val - limb.pos[1];
+                trans(limb.limbName, limb.limbNumber, vec3(0, inc, 0));
+            }
+        });
+
+        $(sliderZ).slider({
+            min: -1,
+            max: 1,
+            value: 0,
+            step: 0.01,
+            slide: function(event, ui) {
+                const val = ui.value;
+                const inc = val - limb.pos[2];
+                trans(limb.limbName, limb.limbNumber, vec3(0, 0, inc));
+            }
+        });
+    }
+}
+
+
+function clearFrame(){
+    keyFrames = [];
+}
+
+function playAnimation(){
+    if (animationCount <  keyFrames.length){
+        limbs = deepCopy(keyFrames[animationCount]);
+        if (keyFrames.length - 1 > animationCount){
+            interpolate(keyFrames[animationCount + 1]);
+        }
+    }
+    /*
+    for (let i = 0; i < keyFrames.length; i++){
+        console.log("for");
+        limbs = deepCopy(keyFrames[i]);
+        if (keyFrames.length - 1 > i){
+            interpolate(keyFrames[i + 1]);
+        }
+        //console.log(modelViewMatrix);
+    }
+    */
+    //console.log("done");
+    
+}
+
+function interpolate(target){
+    let initialLimbs = deepCopy(limbs);
+    limbsIncrement = [];
+    traverseInterpolateIncrement(initialLimbs, target, 0);
+    //console.log(limbsIncrement);
+
+    interpolateTimer(0);
+    /*
+    for (let i = 0; i < interPolationLimit; i++){
+        setTimeout(traverseInterpolate(0,0), 10);
+        trans(limbs[0].limbName, limbs[0].limbNumber, limbsIncrement[0].pos);
+        //traverseInterpolate(0, 0);
+    }
+    */
+
+}
+
+function interpolateTimer(count) {
+    if (count < 100){
+        console.log("timer");
+        trans(limbs[0].limbName, limbs[0].limbNumber, limbsIncrement[0].pos);
+        traverseInterpolate(0, 0);
+        count++;
+        return setTimeout(interpolateTimer, 10, count);
+    }
+    else{
+        animationCount++;
+        playAnimation();
+    }
+}
+
+function traverseInterpolateIncrement(initial, target, index){
+    if (index < 0) return;
+    let tempIncrement = {};
+    let limbPos = subtract(target[index].pos, initial[index].pos);
+    limbPos = mult(limbPos, vec3(1 / interPolationLimit, 1 / interPolationLimit, 1 / interPolationLimit));
+
+    let limbAngle = subtract(target[index].angle, initial[index].angle);
+    limbAngle = mult(limbAngle, vec3(1 / interPolationLimit, 1 / interPolationLimit, 1 / interPolationLimit));
+
+    tempIncrement.pos = limbPos;
+    tempIncrement.angle = limbAngle;
+    limbsIncrement.push(tempIncrement);
+
+    if (initial[index].child != null){
+        traverseInterpolateIncrement(initial, target, initial[index].child);
+    }
+
+    if (initial[index].sibling != null){
+        traverseInterpolateIncrement(initial, target, initial[index].sibling);
+    }
+
+}
+
+function traverseInterpolate(index, count){
+    if (index < 0) return;
+    //console.log(deepCopy(limbs));
+    rot(limbs[index].limbName, limbs[index].limbNumber, limbsIncrement[count].angle);
+    count++;
+
+    if (limbs[index].child != null){
+        traverseInterpolate(limbs[index].child, count);
+    }
+
+    if (limbs[index].sibling != null){
+        traverseInterpolate(limbs[index].sibling, count);
+    }
+}
+
+
 
 function rotateAboutCorner(pos, size, angle) {
     let m = mat4();
 
-    m = mult(translate(-pos.x, -pos.y + 0.5 * size.h, -pos.z), m);
-    m = mult(rotate(angle.x, 1, 0, 0), m);
-    m = mult(rotate(angle.y, 0, 1, 0), m);
-    m = mult(rotate(angle.z, 0, 0, 1), m);
-    m = mult(translate(pos.x, pos.y - 0.5 * size.h, pos.z), m);
+    m = mult(translate(-pos[0], -pos[1] + 0.5 * size.h, -pos[2]), m);
+    m = mult(rotate(angle[0], 1, 0, 0), m);
+    m = mult(rotate(angle[1], 0, 1, 0), m);
+    m = mult(rotate(angle[2], 0, 0, 1), m);
+    m = mult(translate(pos[0], pos[1] - 0.5 * size.h, pos[2]), m);
 
     return m;
 }
@@ -77,94 +315,88 @@ function initLimbs() {
     // Torso
     let torso = createLimb(m, "ellipsoid", -1, 1, "torso", 1, {w: 1, h: 0.4, d: 0.4});
     limbs.push(torso);
-    rot("torso", 1, {x: 0, y: 0, z: 0});
-    // trans("torso", 1, {x: 0.4, y: 0.0, z: 0.0});
 
     // Neck
     let neck = createLimb(m, "cuboid", 2, -1, "neck", 1, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(neck);
-    trans("neck", 1, {x: -0.4, y: 0.2, z: 0.0});
-    rot("neck", 1, {x: 0, y: 0, z: 60});
+    trans("neck", 1, vec3(-0.4, 0.2, 0.0));
+    rot("neck", 1, vec3(0, 0, 60));
 
     // UpperLeg-FrontLeft
     let uLegFL = createLimb(m, "cuboid", 3, 7, "upperLeg", 1, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(uLegFL);
-    trans("upperLeg", 1, {x: -0.3, y: 0.04, z: -0.05});
-    rot("upperLeg", 1, {x: 0, y: 0, z: 180});
-    rot("upperLeg", 1, {x: 0, y: 0, z: 45});
+    trans("upperLeg", 1, vec3(-0.3, 0.04, -0.05));
+    rot("upperLeg", 1, vec3(0, 0, 180));
+    rot("upperLeg", 1, vec3(0, 0, 45));
 
     // UpperLeg-FrontRight
     let uLegFR = createLimb(m, "cuboid", 4, 8, "upperLeg", 2, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(uLegFR);
-    trans("upperLeg", 2, {x: -0.3, y: 0.04, z: 0.05});
-    rot("upperLeg", 2, {x: 0, y: 0, z: 180});
-    rot("upperLeg", 2, {x: 0, y: 0, z: 45});
+    trans("upperLeg", 2, vec3(-0.3, 0.04, 0.05));
+    rot("upperLeg", 2, vec3(0, 0, 180));
+    rot("upperLeg", 2, vec3(0, 0, 45));
 
     // UpperLeg-BackLeft
     let uLegBL = createLimb(m, "cuboid", 5, 9, "upperLeg", 3, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(uLegBL);
-    trans("upperLeg", 3, {x: 0.2, y: 0.04, z: -0.05});
-    rot("upperLeg", 3, {x: 0, y: 0, z: 180});
-    rot("upperLeg", 3, {x: 0, y: 0, z: 45});
+    trans("upperLeg", 3, vec3(0.2, 0.04, -0.05));
+    rot("upperLeg", 3, vec3(0, 0, 180));
+    rot("upperLeg", 3, vec3(0, 0, 45));
 
     // UpperLeg-BackRight
     let uLegBR = createLimb(m, "cuboid", 6, 10, "upperLeg", 4, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(uLegBR);
-    trans("upperLeg", 4, {x: 0.2, y: 0.04, z: 0.05});
-    rot("upperLeg", 4, {x: 0, y: 0, z: 180});
-    rot("upperLeg", 4, {x: 0, y: 0, z: 45});
+    trans("upperLeg", 4, vec3(0.2, 0.04, 0.05));
+    rot("upperLeg", 4, vec3(0, 0, 180));
+    rot("upperLeg", 4, vec3(0, 0, 45));
 
     // UpperTail
     let uTail = createLimb(m, "ellipsoid", -1, -1, "upperTail", 1, {w: 0.1, h: 0.4, d: 0.05});
     limbs.push(uTail);
-    trans("upperTail", 1, {x: 0.42, y: 0.2, z: 0.0});
-    rot("upperTail", 1, {x: 0, y: 0, z: -120});
+    trans("upperTail", 1, vec3(0.42, 0.2, 0.0));
+    rot("upperTail", 1, vec3(0, 0, -120));
 
 
 
     // LowerLeg-FrontLeft
     let lLegFL = createLimb(m, "cuboid", -1, -1, "lowerLeg", 1, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(lLegFL);
-    trans("lowerLeg", 1, {x: -0.02, y: 0.25, z: 0});
-    rot("lowerLeg", 1, {x: 0, y: 0, z: -45});
+    trans("lowerLeg", 1, vec3(-0.02, 0.25, 0));
+    rot("lowerLeg", 1, vec3(0, 0, -45));
 
     // LowerLeg-FrontRight
     let lLegFR = createLimb(m, "cuboid", -1, -1, "lowerLeg", 2, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(lLegFR);
-    trans("lowerLeg", 2, {x: -0.02, y: 0.25, z: 0});
-    rot("lowerLeg", 2, {x: 0, y: 0, z: -45});
+    trans("lowerLeg", 2, vec3(-0.02, 0.25, 0));
+    rot("lowerLeg", 2, vec3(0, 0, -45));
 
 
     // LowerLeg-BackLeft
     let lLegBL = createLimb(m, "cuboid", -1, -1, "lowerLeg", 3, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(lLegBL);
-    trans("lowerLeg", 3, {x: -0.02, y: 0.25, z: 0});
-    rot("lowerLeg", 3, {x: 0, y: 0, z: -45});
+    trans("lowerLeg", 3, vec3(-0.02, 0.25, 0));
+    rot("lowerLeg", 3, vec3(0, 0, -45));
 
 
     // LowerLeg-BackRight
     let lLegBR = createLimb(m, "cuboid", -1, -1, "lowerLeg", 4, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(lLegBR);
-    trans("lowerLeg", 4, {x: -0.02, y: 0.25, z: 0});
-    rot("lowerLeg", 4, {x: 0, y: 0, z: -45});
+    trans("lowerLeg", 4, vec3(-0.02, 0.25, 0));
+    rot("lowerLeg", 4, vec3(0, 0, -45));
 }
 
 function drawLimb(limbIndex){
 
     const m = mult(modelViewMatrix, scale4(limbs[limbIndex].size.w, limbs[limbIndex].size.h, limbs[limbIndex].size.d));
-
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(m));
-    if (limbs[limbIndex].shape === "ellipsoid") {
+    if (limbs[limbIndex].shape === "ellipsoid"){
         gl.drawArrays(gl.TRIANGLE_FAN, ellipsoidIndex, ellipsoidLength);
     }
-    else if(limbs[limbIndex].shape === "cuboid") {
+    else if(limbs[limbIndex].shape === "cuboid"){
         gl.drawArrays(gl.TRIANGLES, cuboidIndex, cuboidLength);
     }
-    else if(limbs[limbIndex].shape === "pyramid") {
+    else if(limbs[limbIndex].shape === "pyramid"){
         gl.drawArrays(gl.TRIANGLES, pyramidIndex, pyramidLength);
-    }
-    else if(limbs[limbIndex].shape === "pyramidEx") {
-        gl.drawArrays(gl.TRIANGLES, pyramidExIndex, pyramidExLength);
     }
 }
 /**
@@ -183,9 +415,9 @@ function createLimb(transform, shape, sibling, child, limbName, limbNumber, size
         child: child,
         limbName: limbName,
         limbNumber: limbNumber,
-        pos: {x: 0.0, y: 0.0, z: 0.0},
+        pos: vec3(0.0, 0.0, 0.0),
         size: size,
-        angle: {x: 0.0, y: 0.0, z: 0.0}
+        angle: vec3(0.0, 0.0, 0.0)
     };
 }
 
@@ -195,11 +427,8 @@ function processLimbs(limbName, limbNumber, transformation) {
 }
 
 function traverse(limbIndex) {
-    
 
     if (limbIndex < 0 ) return;
-
-    console.log(limbIndex);
 
     stack.push(modelViewMatrix);
     modelViewMatrix = mult(modelViewMatrix, limbs[limbIndex].transform);
@@ -220,7 +449,7 @@ function traverse(limbIndex) {
  * @param {*} program Program instance.
  * @param {DOMElement} canvas The canvas object.
  */
-function bindEvents(gl, program, canvas) {
+function bindEvents() {
     $('#jsonFile').bind('change', () => {
         const file = jsonFile.files[0];
         const fileType = /json.*/;
@@ -243,22 +472,22 @@ function bindEvents(gl, program, canvas) {
 
     $(document).keypress(e => {
         if (e.charCode === 119) { // W
-            rot("torso", 1, {x: 10, y: 0, z: 0});
+            rot("torso", 1, vec3(10, 0, 0));
         }
         else if (e.charCode === 115) { // S
-            rot("torso", 1, {x: -10, y: 0, z: 0});
+            rot("torso", 1, vec3(-10, 0, 0));
         }
         else if (e.charCode === 97) { // A
-            rot("torso", 1, {x: 0, y: 10, z: 0});
+            rot("torso", 1, vec3(0, 10, 0));
         }
         else if (e.charCode === 100) { // D
-            rot("torso", 1, {x: 0, y: -10, z: 0});
+            rot("torso", 1, vec3(0, -10, 0));
         }
         else if (e.charCode === 113) { // Q
-            rot("torso", 1, {x: 0, y: 0, z: 10});
+            rot("torso", 1, vec3(0, 0, 10));
         }
         else if (e.charCode === 101) { // E
-            rot("torso", 1, {x: 0, y: 0, z: -10});
+            rot("torso", 1, vec3(0, 0, -10));
         }
     });
 
@@ -270,8 +499,12 @@ function bindEvents(gl, program, canvas) {
         $('#jsonFile').click();
     });
 
-    $('canvas').click(event => {
-        
+    $('#playButton').click(() => {
+        playAnimation();
+    });
+
+    $('#addButton').click(() => {
+        saveFrame();
     });
 }
 
@@ -279,10 +512,12 @@ function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     traverse(getLimbPosition("torso", 1));
     requestAnimFrame(render);
+    
 }
 
 window.onload = () => {
-    canvas = document.querySelector( 'canvas' );
+    canvas = document.getElementById( 'glCanvas' );
+    // resize();
     gl = WebGLUtils.setupWebGL( canvas );
 
     if (!gl) return alert( "WebGL isn't available" );
@@ -351,7 +586,9 @@ window.onload = () => {
 
     initLimbs();
 
+    for (let i = 0; i < limbs.length; i++) {
+        addControlBox(limbs[i], i === 0);
+    }
 
-  
     render();
 };

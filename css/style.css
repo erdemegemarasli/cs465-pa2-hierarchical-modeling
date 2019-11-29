@@ -1,4 +1,4 @@
-canvas {
+#glCanvas {
     border-radius: 5px;
 }
 
@@ -17,4 +17,16 @@ canvas {
 
 .ui.button {
     margin: 0 0 0 0;
+}
+
+#limb-control-box-template {
+    display: none;
+}
+
+div.limb-control-box-row {
+    padding: 5px;
+}
+
+div.ui.card {
+    margin-left: 15px;
 }
