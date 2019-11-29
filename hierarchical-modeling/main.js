@@ -197,9 +197,13 @@ function clearFrame(){
 
 function playAnimation(){
     if (animationCount <  keyFrames.length){
+        console.log("asda");
         limbs = deepCopy(keyFrames[animationCount]);
         if (keyFrames.length - 1 > animationCount){
             interpolate(keyFrames[animationCount + 1]);
+        }
+        else{
+            animationCount = 0;
         }
     }
 }
@@ -443,6 +447,12 @@ function bindEvents() {
             reader.onload = () => {
                 const content = reader.result;
                 const data = JSON.parse(content);
+                keyFrames = data;
+                for (let i = 0; i < keyFrames.length; i++){
+                    for (let j = 0; j < keyFrames[i].length; j++){
+                        keyFrames[i][j].transform.matrix = true;
+                    }
+                }
                 
 
             }
@@ -475,7 +485,7 @@ function bindEvents() {
     });
 
     $('#saveButton').click(() => {
-        downloadObjectAsJson({}, "data");
+        downloadObjectAsJson(keyFrames, "animation");
     });
 
     $('#loadButton').click(() => {
