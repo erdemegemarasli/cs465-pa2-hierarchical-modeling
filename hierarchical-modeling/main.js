@@ -183,7 +183,7 @@ function addControlBox(limb, translationAllowed) {
     }
 }
 
-
+//Plays the current animation with interpolation
 function playAnimation(){
     if (animationCount <  keyFrames.length){
         console.log("asda");
@@ -197,6 +197,7 @@ function playAnimation(){
     }
 }
 
+//interpolation function to run animation
 function interpolate(target){
     let initialLimbs = deepCopy(limbs);
     limbsIncrement = [];
@@ -205,6 +206,7 @@ function interpolate(target){
     interpolateTimer(0);
 }
 
+//interpolation timer to smoothly animate
 function interpolateTimer(count) {
     if (count < 100){
         console.log("timer");
@@ -219,6 +221,7 @@ function interpolateTimer(count) {
     }
 }
 
+//Calculates current interpolation difference
 function traverseInterpolateIncrement(initial, target, index){
     if (index < 0) return;
     let tempIncrement = {};
@@ -242,6 +245,7 @@ function traverseInterpolateIncrement(initial, target, index){
 
 }
 
+//Executes current interpolation difference
 function traverseInterpolate(index, count){
     if (index < 0) return;
     //console.log(deepCopy(limbs));
@@ -269,7 +273,7 @@ function rotateAboutCorner(pos, size, angle) {
     return m;
 }
 
-// Returns he index of the given limb
+// Returns the index of the given limb
 function getLimbPosition(limbName, limbNumber) {
     for (let i = 0; i < limbs.length; i++) {
         if (limbs[i].limbName === limbName && limbs[i].limbNumber === limbNumber) {
@@ -279,6 +283,7 @@ function getLimbPosition(limbName, limbNumber) {
     return -1;
 }
 
+//Initialize all lims
 function initLimbs() {
     let m = mat4();
 
@@ -358,6 +363,7 @@ function initLimbs() {
     rot("head", 1, vec3(0, 0, 90));
 }
 
+// Draw given limb
 function drawLimb(limbIndex){
 
     const m = mult(modelViewMatrix, scale4(limbs[limbIndex].size.w, limbs[limbIndex].size.h, limbs[limbIndex].size.d));
@@ -377,7 +383,7 @@ function drawLimb(limbIndex){
 }
 /**
  * transform = transform matrix
- * shape = shape function
+ * shape = shape ID
  * sibling = sibling index
  * child = child index
  * limbName = Name of the limb
@@ -397,11 +403,13 @@ function createLimb(transform, shape, sibling, child, limbName, limbNumber, size
     };
 }
 
+//Applys the given transformation to the given limb
 function processLimbs(limbName, limbNumber, transformation) {
     let limbIndex = getLimbPosition(limbName, limbNumber);
     limbs[limbIndex].transform = mult(transformation, limbs[limbIndex].transform);
 }
 
+//Traverse the given limbs, hierarchically apply the changes.
 function traverse(limbIndex) {
 
     if (limbIndex < 0 ) return;
@@ -498,31 +506,12 @@ function bindEvents() {
     });
 }
 
+// Draws the current body according to the transform matrixes with respect to hierarchical model
 function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     traverse(getLimbPosition("torso", 1));
     requestAnimFrame(render);
     
-}
-
-function moveCamera(r, theta, phi) {
-    const x = (r, theta, phi) => {
-        return r * Math.sin(theta) * Math.cos(phi);
-    };
-
-    const y = (r, theta, phi) => {
-        return r * Math.sin(theta) * Math.sin(phi);
-    };
-
-    const z = (r, theta) => {
-        return r * Math.cos(theta);
-    };
-
-    const eye = vec3(x(r, theta, phi), y(r, theta, phi), z(r, theta));
-    const at = vec3(0.0, 0.0, 0.0);
-    const up = vec3(0.0, 1.0, 0.0);
-    modelViewMatrix = lookAt(eye, at, up);
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 }
 
 window.onload = () => {
