@@ -202,35 +202,14 @@ function playAnimation(){
             interpolate(keyFrames[animationCount + 1]);
         }
     }
-    /*
-    for (let i = 0; i < keyFrames.length; i++){
-        console.log("for");
-        limbs = deepCopy(keyFrames[i]);
-        if (keyFrames.length - 1 > i){
-            interpolate(keyFrames[i + 1]);
-        }
-        //console.log(modelViewMatrix);
-    }
-    */
-    //console.log("done");
-    
 }
 
 function interpolate(target){
     let initialLimbs = deepCopy(limbs);
     limbsIncrement = [];
     traverseInterpolateIncrement(initialLimbs, target, 0);
-    //console.log(limbsIncrement);
 
     interpolateTimer(0);
-    /*
-    for (let i = 0; i < interPolationLimit; i++){
-        setTimeout(traverseInterpolate(0,0), 10);
-        trans(limbs[0].limbName, limbs[0].limbNumber, limbsIncrement[0].pos);
-        //traverseInterpolate(0, 0);
-    }
-    */
-
 }
 
 function interpolateTimer(count) {
@@ -285,8 +264,6 @@ function traverseInterpolate(index, count){
     }
 }
 
-
-
 function rotateAboutCorner(pos, size, angle) {
     let m = mat4();
 
@@ -317,7 +294,7 @@ function initLimbs() {
     limbs.push(torso);
 
     // Neck
-    let neck = createLimb(m, "cuboid", 2, -1, "neck", 1, {w: 0.1, h: 0.3, d: 0.05});
+    let neck = createLimb(m, "cuboid", 2, 11, "neck", 1, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(neck);
     trans("neck", 1, vec3(-0.4, 0.2, 0.0));
     rot("neck", 1, vec3(0, 0, 60));
@@ -356,8 +333,6 @@ function initLimbs() {
     trans("upperTail", 1, vec3(0.42, 0.2, 0.0));
     rot("upperTail", 1, vec3(0, 0, -120));
 
-
-
     // LowerLeg-FrontLeft
     let lLegFL = createLimb(m, "cuboid", -1, -1, "lowerLeg", 1, {w: 0.1, h: 0.3, d: 0.05});
     limbs.push(lLegFL);
@@ -369,7 +344,6 @@ function initLimbs() {
     limbs.push(lLegFR);
     trans("lowerLeg", 2, vec3(-0.02, 0.25, 0));
     rot("lowerLeg", 2, vec3(0, 0, -45));
-
 
     // LowerLeg-BackLeft
     let lLegBL = createLimb(m, "cuboid", -1, -1, "lowerLeg", 3, {w: 0.1, h: 0.3, d: 0.05});
@@ -383,6 +357,12 @@ function initLimbs() {
     limbs.push(lLegBR);
     trans("lowerLeg", 4, vec3(-0.02, 0.25, 0));
     rot("lowerLeg", 4, vec3(0, 0, -45));
+
+    // Head
+    let head = createLimb(m, "pyramidEx", -1, -1, "head", 1, {w: 0.3, h: 0.45, d: 0.3});
+    limbs.push(head);
+    trans("head", 1, vec3(-0.02, 0.3, 0));
+    rot("head", 1, vec3(0, 0, 90));
 }
 
 function drawLimb(limbIndex){
@@ -397,6 +377,9 @@ function drawLimb(limbIndex){
     }
     else if(limbs[limbIndex].shape === "pyramid"){
         gl.drawArrays(gl.TRIANGLES, pyramidIndex, pyramidLength);
+    }
+    else if(limbs[limbIndex].shape === "pyramidEx"){
+        gl.drawArrays(gl.TRIANGLES, pyramidExIndex, pyramidExLength);
     }
 }
 /**
@@ -583,7 +566,6 @@ window.onload = () => {
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
     
-
     initLimbs();
 
     for (let i = 0; i < limbs.length; i++) {
