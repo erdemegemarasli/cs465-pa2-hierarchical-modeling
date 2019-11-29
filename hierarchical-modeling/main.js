@@ -25,12 +25,10 @@ let pyramidExIndex = 0;
 let pyramidExLength = 0;
 let stack = [];
 let limbs = [];
-let currentKeyFrame = {};
 let limbsIncrement = [];
 const interPolationLimit = 100;
 let animationCount = 0;
 
-let viewToggle = false;
 
 let keyFrames = [];
 //let rootLimb = null;
@@ -53,15 +51,6 @@ function rot(limbName, limbNumber, value) {
     const limb = limbs[getLimbPosition(limbName, limbNumber)];
     processLimbs(limbName, limbNumber, rotateAboutCorner(limb.pos, limb.size, value));
 }
-//Stackoverflow
-function sleep(milliseconds) {
-    var start = new Date().getTime();
-    for (var i = 0; i < 1e7; i++) {
-      if ((new Date().getTime() - start) > milliseconds){
-        break;
-      }
-    }
-  }
 
 function saveFrame(){
     keyFrames.push(deepCopy(limbs));
@@ -194,10 +183,6 @@ function addControlBox(limb, translationAllowed) {
     }
 }
 
-
-function clearFrame(){
-    keyFrames = [];
-}
 
 function playAnimation(){
     if (animationCount <  keyFrames.length){
